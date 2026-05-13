@@ -1,0 +1,121 @@
+services:
+  # ── Laravel Octane app (Swoole) ───────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    container_name: octane_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: "${APP_ENV}"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "${APP_URL}"
+      OCTANE_SERVER: "${OCTANE_SERVER}"
+      OCTANE_WORKERS: "${OCTANE_WORKERS}"
+      OCTANE_MAX_REQUESTS: "${OCTANE_MAX_REQUESTS}"
+      DB_CONNECTION: "${DB_CONNECTION}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      CACHE_STORE: "${CACHE_STORE}"
+      SESSION_DRIVER: "${SESSION_DRIVER}"
+      QUEUE_CONNECTION: "${QUEUE_CONNECTION}"
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor # keep container vendor intact (prod, no-dev)
+      - /var/www/html/bootstrap/cache # keep container package manifest intact
+      - storage_data:/var/www/html/storage
+    # Port 8000 NOT exposed to host — only accessible via nginx
+    expose:
+      - "8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - octane_net
+
+  # ── Nginx reverse proxy ───────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: octane_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8000:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - octane_net
+
+  # ── Queue worker ──────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+    container_name: octane_worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: "${APP_ENV}"
+      APP_KEY: "${APP_KEY}"
+      DB_CONNECTION: "${DB_CONNECTION}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USERNAME: "${DB_USERNAME}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      QUEUE_CONNECTION: "${QUEUE_CONNECTION}"
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/bootstrap/cache
+      - storage_data:/var/www/html/storage
+    entrypoint: []
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - octane_net
+
+  # ── Redis ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: octane_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - octane_net
+
+volumes:
+  redis_data:
+  storage_data:
+
+networks:
+  octane_net:
+    driver: bridge
