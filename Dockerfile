@@ -15,8 +15,22 @@ RUN composer install \
     --optimize-autoloader \
     --ignore-platform-reqs
 
+# ─── Stage 2: Node / Vite build ───────────────────────────────────────────────
+FROM node:20-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+
+RUN npm install --legacy-peer-deps
+
+COPY . .
+COPY --from=vendor /app/vendor ./vendor
+
+RUN npm run build
+
 # ──────────────────────────────────────────────────────────────
-#  Stage 2 – Production image (php-cli + Swoole)
+#  Stage 3 – Production image (php-cli + Swoole)
 # ──────────────────────────────────────────────────────────────
 FROM php:8.2-cli AS app
 
@@ -70,6 +84,9 @@ RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
 
 # Pull pre-built vendor from Stage 1
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
+
+# Pull compiled Vite assets from Stage 2
+COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
 
 # ── Storage & bootstrap cache directories ──
 RUN mkdir -p storage/framework/{sessions,views,cache} \
