@@ -488,6 +488,8 @@
             </li>
             <li><a href="{{ route('queue.test') }}"
                     class="{{ request()->routeIs('queue.test') ? 'active' : '' }}">Queue Test</a></li>
+            <li><a href="{{ route('performance') }}"
+                    class="{{ request()->routeIs('performance') ? 'active' : '' }}">Performance</a></li>
         </ul>
     </nav>
 
@@ -498,6 +500,8 @@
             &amp;
             Octane.</p>
     </footer>
+
+    @stack('scripts')
 
 </body>
 
