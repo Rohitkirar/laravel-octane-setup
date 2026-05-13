@@ -473,6 +473,7 @@
             }
         }
     </style>
+    @stack('styles')
 </head>
 
 <body>
@@ -485,13 +486,16 @@
             <li><a href="{{ route('blog') }}" class="{{ request()->routeIs('blog') ? 'active' : '' }}">Blog</a></li>
             <li><a href="{{ route('contact') }}" class="{{ request()->routeIs('contact') ? 'active' : '' }}">Contact</a>
             </li>
+            <li><a href="{{ route('queue.test') }}"
+                    class="{{ request()->routeIs('queue.test') ? 'active' : '' }}">Queue Test</a></li>
         </ul>
     </nav>
 
     @yield('content')
 
     <footer>
-        <p>&copy; {{ date('Y') }} <span>Laravel Octane Demo</span>. Built with Laravel {{ app()->version() }} &amp;
+        <p>&copy; {{ date('Y') }} <span>Laravel Octane Demo</span>. Built with Laravel {{ app()->version() }}
+            &amp;
             Octane.</p>
     </footer>
 
