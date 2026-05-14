@@ -30,7 +30,7 @@ COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
 
 # ──────────────────────────────────────────────────────────────
-#  Stage 3 – Production image (php-cli + Swoole)
+#  Stage 3 – Production image (php-cli + RoadRunner)
 # ──────────────────────────────────────────────────────────────
 FROM php:8.2-cli AS app
 
@@ -64,9 +64,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         pcntl \
         sockets
 
-# ── Swoole (Octane server) ──
-RUN pecl install swoole && docker-php-ext-enable swoole
-
 # ── Redis PHP extension ──
 RUN pecl install redis && docker-php-ext-enable redis
 
@@ -84,6 +81,10 @@ RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
 
 # Pull pre-built vendor from Stage 1
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
+
+# ── RoadRunner binary – downloaded by spiral/roadrunner-cli (version-matched) ──
+RUN ./vendor/bin/rr get-binary -n --ansi \
+ && chmod +x ./rr
 
 # Pull compiled Vite assets from Stage 2
 COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
@@ -105,4 +106,4 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000", "--workers=4", "--task-workers=2"]
+CMD ["php", "artisan", "octane:start", "--server=roadrunner", "--host=0.0.0.0", "--port=8000", "--workers=4"]

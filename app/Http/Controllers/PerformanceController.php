@@ -12,15 +12,15 @@ class PerformanceController extends Controller
         $info = [
             'php_version'     => PHP_VERSION,
             'laravel_version' => app()->version(),
-            'octane_server'   => config('octane.server', 'swoole'),
-            'octane_workers'  => config('octane.swoole.options.worker_num', env('OCTANE_WORKERS', 4)),
+            'octane_server'   => config('octane.server', 'roadrunner'),
+            'octane_workers'  => env('OCTANE_WORKERS', 4),
             'max_requests'    => env('OCTANE_MAX_REQUESTS', 500),
             'worker_pid'      => getmypid(),
             'hostname'        => gethostname(),
             'memory_mb'       => round(memory_get_usage(true) / 1024 / 1024, 2),
             'memory_peak_mb'  => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
             'opcache_enabled' => function_exists('opcache_get_status') && opcache_get_status() !== false,
-            'swoole_version'  => defined('SWOOLE_VERSION') ? SWOOLE_VERSION : null,
+            'roadrunner_version' => defined('RR_VERSION') ? RR_VERSION : null,
             'db_driver'       => config('database.default'),
             'queue_driver'    => config('queue.default'),
             'cache_driver'    => config('cache.default'),
@@ -56,7 +56,7 @@ class PerformanceController extends Controller
             'memory_mb'       => round(memory_get_usage(true) / 1024 / 1024, 2),
             'db_ok'           => $dbOk,
             'php_version'     => PHP_VERSION,
-            'swoole_version'  => defined('SWOOLE_VERSION') ? SWOOLE_VERSION : null,
+            'roadrunner_version' => defined('RR_VERSION') ? RR_VERSION : null,
         ]);
     }
 }

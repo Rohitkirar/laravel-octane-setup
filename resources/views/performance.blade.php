@@ -17,7 +17,8 @@
             <div class="info-card">
                 <div class="info-label">Server</div>
                 <div class="info-value">{{ strtoupper($info['octane_server']) }}</div>
-                <div class="info-sub">{{ $info['swoole_version'] ? 'Swoole v' . $info['swoole_version'] : 'N/A' }}</div>
+                <div class="info-sub">
+                    {{ $info['roadrunner_version'] ? 'RoadRunner v' . $info['roadrunner_version'] : 'N/A' }}</div>
             </div>
 
             <div class="info-card">

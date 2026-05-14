@@ -41,10 +41,10 @@ mkdir -p storage/framework/{sessions,views,cache} \
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# ── Start Octane (Swoole) ──────────────────────────────────────
-echo "🚀 Starting Laravel Octane (Swoole)..."
+# ── Start Octane (RoadRunner) ─────────────────────────────────
+echo "🚀 Starting Laravel Octane (RoadRunner)..."
 exec php artisan octane:start \
-    --server=swoole \
+    --server=roadrunner \
     --host=0.0.0.0 \
     --port=8000 \
     --workers=${OCTANE_WORKERS:-4} \

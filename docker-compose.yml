@@ -1,5 +1,5 @@
 services:
-  # ── Laravel Octane app (Swoole) ───────────────────────────────
+  # ── Laravel Octane app (RoadRunner) ──────────────────────────
   app:
     build:
       context: .
